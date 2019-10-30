@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Run this with root privileges
+# Only tested in Ubuntu 16.04
 
 set -o errexit
 set -o pipefail
 # set -o xtrace
 
-_install_ubuntu_packages() {
+_install_packages() {
   apt-get update && apt-get dist-upgrade
 
   apt-get install bridge-utils debootstrap ifenslave ifenslave-2.6 \
@@ -79,7 +80,7 @@ _remove_vlans() {
   ip link delete "${INTERFACE}.${VLAN_ID_4}"
 }
 
-_install_ubuntu_packages
+_install_packages
 _set_ssh_pub_key
 _create_vlans
 
