@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+
 echo 'Setting up bridges'
 
 ip link add name br-mgmt type bridge
