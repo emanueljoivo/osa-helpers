@@ -7,6 +7,9 @@ set -o pipefail
 set -o xtrace
 
 _install_packages() {
+  locale-gen en_US en_US.UTF-8 pt_BR.UTF-8
+  update-locale LANG=en_US.UTF-8
+
   apt-get update && apt-get dist-upgrade
   apt-get install aptitude build-essential git ntp \
     ntpdate openssh-server python-dev sudo
