@@ -100,11 +100,11 @@ main() {
   if [[ ${USER_NAME} != root ]]; then 
     echo "This script must be executed as root"
   else 
-    #_install_dependencies
-    #_set_ssh_pub_key
-    #_create_bridges
-    #_create_vlans
-    #_persist_configs
+    _install_dependencies
+    _set_ssh_pub_key
+    _create_bridges
+    _create_vlans
+    _persist_configs
     #_remove_vlans    
     exit 0  
   fi  
