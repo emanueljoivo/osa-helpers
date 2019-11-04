@@ -29,11 +29,7 @@ _install_dependencies() {
   apt-get install bridge-utils debootstrap ifenslave ifenslave-2.6 \
     iproute2 lsof lvm2 chrony openssh-server sudo tcpdump vlan python
 
-  service chrony restart
-
-  # Kernel modules to enable VLAN protocols and interfaces bond
-  echo 'bonding' >> /etc/modules
-  echo '8021q' >> /etc/modules
+  service chrony restart  
 }
 
 _set_ssh_pub_key() {
@@ -79,18 +75,32 @@ _create_vlans() {
   done  
 }
 
+_persist_configs() {
+  local VLANS_CONFIG_FILE=vlans
+  local NETWORK_CONFIG_PATH=/etc/network/interfaces
+  # Kernel modules to enable VLAN protocols and interfaces bond
+  echo 'bonding' >> /etc/modules
+  echo '8021q' >> /etc/modules
+
+  modprobe 8021q
+
+  cat "${VLANS_CONFIG_FILE}" >> "${NETWORK_CONFIG_PATH}"
+}
+
 _remove_vlans() {
   local INTERFACE=eno1
-  for VLAN in "${!VLANS[@]}"; do     
-    echo "${INTERFACE}.${VLAN}"
-    # ip link delete "${INTERFACE}.${VLAN}"
+  for VLAN in "${!VLANS[@]}"; do         
+    ip link delete "${INTERFACE}.${VLAN}"
   done 
 }
 
-#_install_dependencies
-#_set_ssh_pub_key
-#_create_bridges
-#_create_vlans
-#_remove_vlans
+main() {
+  _install_dependencies
+  _set_ssh_pub_key
+  _create_bridges
+  _create_vlans
+  _persist_configs
+  #_remove_vlans
 
-exit 0
+  exit 0
+}

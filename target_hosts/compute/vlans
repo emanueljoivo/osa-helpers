@@ -4,6 +4,7 @@ auto eno1.405
 iface eno1.405 inet static
  address 10.11.45.1
  netmask 255.255.255.0
+ vlan-raw-device eno1
 
 # add vlan 406 on eno1 - static IP address
 # management
@@ -11,6 +12,7 @@ auto eno1.406
 iface eno1.406 inet static
  address 10.11.46.1
  netmask 255.255.255.0
+ vlan-raw-device eno1
 
 # add vlan 407 on eno1 - static IP address
 # vlans
@@ -18,6 +20,7 @@ auto eno1.407
 iface eno1.407 inet static
  address 10.11.47.1
  netmask 255.255.255.0
+ vlan-raw-device eno1
 
 # add vlan 408 on eno1 - static IP address
 # storage
@@ -25,3 +28,4 @@ auto eno1.408
 iface eno1.408 inet static
  address 10.11.48.1
  netmask 255.255.255.0
+ vlan-raw-device eno1
