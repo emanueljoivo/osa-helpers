@@ -6,6 +6,20 @@ set -o errexit
 set -o pipefail
 # set -o xtrace
 
+readonly VLANS=(
+  ["405"]="10.11.45"
+  ["406"]="10.11.46"
+  ["407"]="10.11.47"
+  ["408"]="10.11.48"
+)
+
+readonly BRIDGES=(
+  br-mgmt
+  br-storage
+  br-vxlan
+  br-vlan
+)
+
 _install_dependencies() {
   locale-gen en_US en_US.UTF-8 pt_BR.UTF-8
   update-locale LANG=en_US.UTF-8
@@ -23,7 +37,7 @@ _install_dependencies() {
 }
 
 _set_ssh_pub_key() {
-  PUB_KEY_FILE=key.pub
+  local PUB_KEY_FILE=key.pub
 
   if [[ -f "${PUB_KEY_FILE}" ]]; then
     cat ${PUB_KEY_FILE} >> /root/.ssh/authorized_keys
@@ -34,11 +48,9 @@ _set_ssh_pub_key() {
 
 _create_bridges() {
   echo 'Setting up bridges'
-
-  ip link add name br-mgmt type bridge
-  ip link add name br-storage type bridge
-  ip link add name br-vxlan type bridge
-  ip link add name br-vlan type bridge
+  for BRIDGE in "${BRIDGES[@]}"; do         
+    ip link add name ${BRIDGE} type bridge
+  done  
 }
 
 _create_vlan() {
@@ -59,29 +71,26 @@ _create_vlan() {
   echo "${VLAN_NAME} is up"
 }
 
-readonly VLAN_ID_1=405
-readonly VLAN_ID_2=406
-readonly VLAN_ID_3=407
-readonly VLAN_ID_4=408
-
 _create_vlans() {
   local INTERFACE=eno1
-  _create_vlan ${INTERFACE} ${VLAN_ID_1} 10.11.45.1 10.11.45.255
-  _create_vlan ${INTERFACE} ${VLAN_ID_2} 10.11.46.1 10.11.47.255
-  _create_vlan ${INTERFACE} ${VLAN_ID_3} 10.11.47.1 10.11.48.255
-  _create_vlan ${INTERFACE} ${VLAN_ID_4} 10.11.48.1 10.11.49.255
+
+  for VLAN in "${!VLANS[@]}"; do     
+    _create_vlan ${INTERFACE} ${VLAN} "${VLANS[$VLAN]}.1" "${VLANS[$VLAN]}.255"
+  done  
 }
 
 _remove_vlans() {
   local INTERFACE=eno1
-  ip link delete "${INTERFACE}.${VLAN_ID_1}"
-  ip link delete "${INTERFACE}.${VLAN_ID_2}"
-  ip link delete "${INTERFACE}.${VLAN_ID_3}"
-  ip link delete "${INTERFACE}.${VLAN_ID_4}"
+  for VLAN in "${!VLANS[@]}"; do     
+    echo "${INTERFACE}.${VLAN}"
+    # ip link delete "${INTERFACE}.${VLAN}"
+  done 
 }
 
-_install_dependencies
-_set_ssh_pub_key
-_create_vlans
+#_install_dependencies
+#_set_ssh_pub_key
+#_create_bridges
+#_create_vlans
+#_remove_vlans
 
 exit 0
