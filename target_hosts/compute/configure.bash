@@ -24,9 +24,9 @@ _install_dependencies() {
   locale-gen en_US en_US.UTF-8 pt_BR.UTF-8
   update-locale LANG=en_US.UTF-8
 
-  apt-get update && apt-get dist-upgrade
+  apt-get update && apt-get dist-upgrade -y 
 
-  apt-get install bridge-utils debootstrap ifenslave ifenslave-2.6 \
+  apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 \
     iproute2 lsof lvm2 chrony openssh-server sudo tcpdump vlan python
 
   service chrony restart  
