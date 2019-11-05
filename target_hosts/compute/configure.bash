@@ -6,6 +6,16 @@ set -o errexit
 set -o pipefail
 # set -o xtrace
 
+DIR_NAME="`dirname \"${0}\"`"              
+DIR_PATH="`( cd \"${DIR_NAME}\" && pwd )`" 
+
+if [ -z "${DIR_PATH}" ] ; then
+  echo "For some reason, the path is not accessible to the script (e.g. permissions re-evaled after suid)"
+  exit 1
+fi
+
+readonly INTERFACE_NAME=eno1
+
 readonly VLANS=(
   ["405"]="10.11.45"
   ["406"]="10.11.46"
@@ -20,10 +30,14 @@ readonly BRIDGES=(
   br-vlan
 )
 
-_install_dependencies() {
+_config_locales() {
+  echo "Setting locales"
   locale-gen en_US en_US.UTF-8 pt_BR.UTF-8
   update-locale LANG=en_US.UTF-8
+}
 
+_install_dependencies() {
+  echo "Upgrading/Installing dependencies"
   apt-get update && apt-get dist-upgrade -y 
 
   apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 \
@@ -33,7 +47,8 @@ _install_dependencies() {
 }
 
 _set_ssh_pub_key() {
-  local PUB_KEY_FILE=key.pub
+  echo "Configuring ssh keys"
+  local PUB_KEY_FILE="${DIR_PATH}/deployment-host-key.pub"
 
   if [[ -f "${PUB_KEY_FILE}" ]]; then
     cat ${PUB_KEY_FILE} >> /root/.ssh/authorized_keys
@@ -67,16 +82,15 @@ _create_vlan() {
   echo "${VLAN_NAME} is up"
 }
 
-_create_vlans() {
-  local INTERFACE=eno1
+_create_vlans() {  
 
   for VLAN in "${!VLANS[@]}"; do     
-    _create_vlan ${INTERFACE} ${VLAN} "${VLANS[$VLAN]}.1" "${VLANS[$VLAN]}.255"
+    _create_vlan ${INTERFACE_NAME} ${VLAN} "${VLANS[$VLAN]}.1" "${VLANS[$VLAN]}.255"
   done  
 }
 
 _persist_configs() {
-  local VLANS_CONFIG_FILE=vlans
+  local NETWORK_CONFIG_CUSTOM="${DIR_PATH}/vlans-interface"
   local NETWORK_CONFIG_PATH=/etc/network/interfaces
   # Kernel modules to enable VLAN protocols and interfaces bond
   echo 'bonding' >> /etc/modules
@@ -84,13 +98,12 @@ _persist_configs() {
 
   modprobe 8021q
 
-  cat "${VLANS_CONFIG_FILE}" >> "${NETWORK_CONFIG_PATH}"
+  cat "${NETWORK_CONFIG_CUSTOM}" >> "${NETWORK_CONFIG_PATH}"
 }
 
-_remove_vlans() {
-  local INTERFACE=eno1
+_remove_vlans() {  
   for VLAN in "${!VLANS[@]}"; do         
-    ip link delete "${INTERFACE}.${VLAN}"
+    ip link delete "${INTERFACE_NAME}.${VLAN}"
   done 
 }
 
@@ -100,11 +113,12 @@ main() {
   if [[ ${USER_NAME} != root ]]; then 
     echo "This script must be executed as root"
   else 
-    _install_dependencies
-    _set_ssh_pub_key
-    _create_bridges
-    _create_vlans
-    _persist_configs
+    #_config_locales
+    #_install_dependencies
+    #_set_ssh_pub_key
+    #_create_bridges
+    #_create_vlans
+    #_persist_configs
     #_remove_vlans    
     exit 0  
   fi  
