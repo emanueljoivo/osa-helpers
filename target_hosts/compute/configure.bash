@@ -6,8 +6,8 @@ set -o errexit
 set -o pipefail
 # set -o xtrace
 
-DIR_NAME="`dirname \"${0}\"`"              
-DIR_PATH="`( cd \"${DIR_NAME}\" && pwd )`" 
+DIR_NAME="`dirname \"${0}\"`"
+DIR_PATH="`( cd \"${DIR_NAME}\" && pwd )`"
 
 if [ -z "${DIR_PATH}" ] ; then
   echo "For some reason, the path is not accessible to the script (e.g. permissions re-evaled after suid)"
@@ -17,10 +17,10 @@ fi
 readonly INTERFACE_NAME=eno1
 
 readonly VLANS=(
-  ["405"]="10.11.45"
-  ["406"]="10.11.46"
-  ["407"]="10.11.47"
-  ["408"]="10.11.48"
+  ["1245"]="10.133.245"
+  ["1246"]="10.133.246"
+  ["1247"]="10.133.247"
+  ["1248"]="10.133.248"
 )
 
 readonly BRIDGES=(
@@ -38,12 +38,12 @@ _config_locales() {
 
 _install_dependencies() {
   echo "Upgrading/Installing dependencies"
-  apt-get update && apt-get dist-upgrade -y 
+  apt-get update && apt-get dist-upgrade -y
 
   apt-get install -y bridge-utils debootstrap ifenslave ifenslave-2.6 \
     iproute2 lsof lvm2 chrony openssh-server sudo tcpdump vlan python
 
-  service chrony restart  
+  service chrony restart
 }
 
 _set_ssh_pub_key() {
@@ -59,9 +59,9 @@ _set_ssh_pub_key() {
 
 _create_bridges() {
   echo 'Setting up bridges'
-  for BRIDGE in "${BRIDGES[@]}"; do         
+  for BRIDGE in "${BRIDGES[@]}"; do
     ip link add name ${BRIDGE} type bridge
-  done  
+  done
 }
 
 _create_vlan() {
@@ -82,15 +82,14 @@ _create_vlan() {
   echo "${VLAN_NAME} is up"
 }
 
-_create_vlans() {  
-
-  for VLAN in "${!VLANS[@]}"; do     
+_create_vlans() {
+  for VLAN in "${!VLANS[@]}"; do
     _create_vlan ${INTERFACE_NAME} ${VLAN} "${VLANS[$VLAN]}.1" "${VLANS[$VLAN]}.255"
-  done  
+  done
 }
 
 _persist_configs() {
-  local NETWORK_CONFIG_CUSTOM="${DIR_PATH}/vlans-interface"
+  local NETWORK_CONFIG_CUSTOM="${DIR_PATH}/interfaces"
   local NETWORK_CONFIG_PATH=/etc/network/interfaces
   # Kernel modules to enable VLAN protocols and interfaces bond
   echo 'bonding' >> /etc/modules
@@ -101,27 +100,27 @@ _persist_configs() {
   cat "${NETWORK_CONFIG_CUSTOM}" >> "${NETWORK_CONFIG_PATH}"
 }
 
-_remove_vlans() {  
-  for VLAN in "${!VLANS[@]}"; do         
+# Just utilitary
+_remove_vlans() {
+  for VLAN in "${!VLANS[@]}"; do
     ip link delete "${INTERFACE_NAME}.${VLAN}"
-  done 
+  done
 }
 
 main() {
   USER_NAME=`whoami`
 
-  if [[ ${USER_NAME} != root ]]; then 
+  if [[ ${USER_NAME} != root ]]; then
     echo "This script must be executed as root"
-  else 
-    #_config_locales
-    #_install_dependencies
-    #_set_ssh_pub_key
-    #_create_bridges
-    #_create_vlans
-    #_persist_configs
-    #_remove_vlans    
-    exit 0  
-  fi  
+  else
+    _config_locales
+    _install_dependencies
+    _set_ssh_pub_key
+    _create_bridges
+    _create_vlans
+    _persist_configs
+    exit 0
+  fi
 }
 
 main

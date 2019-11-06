@@ -1,0 +1,60 @@
+# add vlan 1245 on eno1 - static IP address
+# api
+auto eno1.1245
+iface eno1.1245 inet static
+ address 10.133.245.1
+ netmask 255.255.255.0
+ vlan-raw-device eno1 
+
+# add vlan 1246 on eno1 - static IP address
+# network
+auto eno1.1246
+iface eno1.1246 inet static
+ address 10.133.246.1
+ netmask 255.255.255.0
+ vlan-raw-device eno1
+
+# add vlan 1247 on eno1 - static IP address
+# storage
+auto eno1.1247
+iface eno1.1247 inet static
+ address 10.133.247.1
+ netmask 255.255.255.0
+ vlan-raw-device eno1
+
+# add vlan 1248 on eno1 - static IP address
+# instancias
+auto eno1.1248
+iface eno1.1248 inet static
+ address 10.133.248.1
+ netmask 255.255.255.0
+ vlan-raw-device eno1
+
+# Brigdes
+
+auto br-mgmt
+     iface br-mgmt inet static
+         address 10.133.245.2
+         network 10.133.245.0
+         netmask 255.255.255.0
+         broadcast 10.133.245.255
+         gateway 10.133.248.1
+         bridge_ports eno1
+
+auto br-storage
+    iface br-storage inet static
+        address 10.133.247.2
+        network 10.133.247.0
+        netmask 255.255.255.0
+        broadcast 10.133.247.255
+        gateway 10.133.248.1
+        bridge_ports eno1
+
+auto br-vlan
+    iface br-vlan inet static
+        address 10.133.246.2
+        network 10.133.246.0
+        netmask 255.255.255.0
+        broadcast 10.133.246.255
+        gateway 10.133.248.1
+        bridge_ports eno1
